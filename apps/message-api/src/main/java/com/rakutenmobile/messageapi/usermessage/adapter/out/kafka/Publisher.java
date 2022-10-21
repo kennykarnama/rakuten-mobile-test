@@ -38,16 +38,11 @@ public class Publisher implements PublishMessageUseCase {
         props.put(ProducerConfig.CLIENT_ID_CONFIG, CLIENT_ID_CONFIG);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-//        props.put("schema.registry.url", "http://127.0.0.1:8081");
 
         SenderOptions<String, String> senderOptions = SenderOptions.create(props);
         sender = KafkaSender.create(senderOptions);
 
         dateFormat = new SimpleDateFormat("HH:mm:ss:SSS z dd MMM yyyy");
-    }
-
-    public void close() {
-        sender.close();
     }
 
     @Override
