@@ -43,7 +43,7 @@ public class MessageService implements MessageUseCase {
 
     @Override
     public void deleteMessageById(UUID id) {
-
+        return;
     }
 
     @Override
