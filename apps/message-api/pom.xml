@@ -77,6 +77,28 @@
 			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka</artifactId>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/io.projectreactor.kafka/reactor-kafka -->
+		<dependency>
+			<groupId>io.projectreactor.kafka</groupId>
+			<artifactId>reactor-kafka</artifactId>
+			<version>1.1.2.RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/io.confluent/kafka-json-schema-serializer -->
+		<dependency>
+			<groupId>io.confluent</groupId>
+			<artifactId>kafka-json-schema-serializer</artifactId>
+			<version>7.2.1</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -110,7 +132,7 @@
 							<apiPackage>com.rakutenmobile.openapi.spring.reactive.api</apiPackage>
 							<modelPackage>com.rakutenmobile.openapi.models</modelPackage>
 							<supportingFilesToGenerate>false</supportingFilesToGenerate>
-							<templateDirectory>src/main/resources/openapi-templates</templateDirectory>
+<!--							<templateDirectory>src/main/resources/openapi-templates</templateDirectory>-->
 							<configOptions>
 								<reactive>true</reactive>
 								<interfaceOnly>true</interfaceOnly>
@@ -122,5 +144,11 @@
 			</plugin>
 		</plugins>
 	</build>
+	<repositories>
+		<repository>
+			<id>confluent</id>
+			<url>https://packages.confluent.io/maven/</url>
+		</repository>
+	</repositories>
 
 </project>
