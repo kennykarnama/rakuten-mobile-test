@@ -28,7 +28,11 @@ paths:
             format: uuid
       responses:
         '200':
-          $ref: '#/components/schemas/Message'
+          description: 'Message detail'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
         '404':
           description: 'Message not found'
           content:

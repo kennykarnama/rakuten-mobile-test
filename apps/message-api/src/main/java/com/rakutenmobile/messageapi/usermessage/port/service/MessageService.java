@@ -2,6 +2,7 @@ package com.rakutenmobile.messageapi.usermessage.port.service;
 
 import com.rakutenmobile.messageapi.usermessage.adapter.out.persistence.MessageEntity;
 import com.rakutenmobile.messageapi.usermessage.adapter.out.persistence.MessageRepository;
+import com.rakutenmobile.messageapi.usermessage.domain.exception.MessageNotFoundException;
 import com.rakutenmobile.messageapi.usermessage.port.in.MessageUseCase;
 import com.rakutenmobile.messageapi.usermessage.domain.UserMessage;
 import org.springframework.data.domain.Page;
@@ -31,7 +32,13 @@ public class MessageService implements MessageUseCase {
 
     @Override
     public Mono<UserMessage> getMessageById(UUID id) {
-        return null;
+        return messageRepository.findById(id)
+                .switchIfEmpty(Mono.defer(() -> Mono.error(new MessageNotFoundException("Message not found"))))
+                .map(r -> UserMessage.builder().id(r.getId())
+                        .content(r.getContent())
+                        .topic(r.getTopic())
+                        .createdAt(r.getCreatedAt())
+                        .userId(r.getUserId()).build());
     }
 
     @Override
