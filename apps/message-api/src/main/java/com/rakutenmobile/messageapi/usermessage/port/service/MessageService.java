@@ -1,14 +1,13 @@
 package com.rakutenmobile.messageapi.usermessage.port.service;
 
+import com.rakutenmobile.messageapi.usermessage.adapter.out.persistence.MessageEntity;
 import com.rakutenmobile.messageapi.usermessage.adapter.out.persistence.MessageRepository;
 import com.rakutenmobile.messageapi.usermessage.port.in.MessageUseCase;
-import com.rakutenmobile.openapi.models.Message;
+import com.rakutenmobile.messageapi.usermessage.domain.UserMessage;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
 import java.util.UUID;
 
 public class MessageService implements MessageUseCase {
@@ -19,12 +18,19 @@ public class MessageService implements MessageUseCase {
     }
 
     @Override
-    public Flux<Message> submitMessages(List<Message> messages) {
-        return null;
+    public Mono<UserMessage> submitMessage(UserMessage message) {
+        MessageEntity entity = MessageEntity.builder().content(message.getContent())
+                .topic(message.getTopic()).createdAt(message.getCreatedAt()).userId(message.getUserId()).build();
+        Mono<MessageEntity> result = messageRepository.save(entity);
+        return result.map(r -> UserMessage.builder().id(r.getId())
+                .content(r.getContent())
+                .topic(r.getTopic())
+                .createdAt(r.getCreatedAt())
+                .userId(r.getUserId()).build());
     }
 
     @Override
-    public Mono<Message> getMessageById(UUID id) {
+    public Mono<UserMessage> getMessageById(UUID id) {
         return null;
     }
 
@@ -34,7 +40,7 @@ public class MessageService implements MessageUseCase {
     }
 
     @Override
-    public Mono<Page<Message>> findAll(Pageable pageable) {
+    public Mono<Page<UserMessage>> findAll(Pageable pageable) {
         return null;
     }
 }

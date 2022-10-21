@@ -47,11 +47,14 @@ public class Publisher implements PublishMessageUseCase {
 
     @Override
     public Flux<SenderResult<String>> Publish(Flux<UserMessage> messages) {
+        UUID fakeUserId = UUID.randomUUID();
         return sender.<String>send(messages
                 .map(message -> {
                     UUID t = UUID.randomUUID();
                     log.debug("uuid " + t);
                     UserMessageDto dto = new UserMessageDto(message.getId(), message.getContent(), message.getTopic(), message.getCreatedAt(), message.getUserId());
+                    // todo: removed once authentication has been implemented
+                    dto.setUserId(fakeUserId.toString());
                     ObjectMapper mapper = JsonMapper.builder()
                             .addModule(new JavaTimeModule())
                             .build();
