@@ -9,6 +9,6 @@ import reactor.core.publisher.Mono;
 public interface MessageUseCase {
     Mono<UserMessage> submitMessage(UserMessage message);
     Mono<UserMessage> getMessageById(java.util.UUID id);
-    void deleteMessageById(java.util.UUID id);
+    Mono<Void> deleteMessageById(java.util.UUID id);
     Mono<Page<UserMessage>> findAll(Pageable pageable);
 }

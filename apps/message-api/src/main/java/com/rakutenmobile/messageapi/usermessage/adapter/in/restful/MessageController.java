@@ -45,7 +45,7 @@ public class MessageController implements MessagesApi, MessageApi {
 
     @Override
     public Mono<ResponseEntity<Void>> messageIdDelete(UUID id, ServerWebExchange exchange) {
-        return null;
+        return messageUseCase.deleteMessageById(id).thenReturn(new ResponseEntity<>(null, HttpStatus.OK));
     }
 
     @Override

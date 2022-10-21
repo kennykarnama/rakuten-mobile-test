@@ -3,10 +3,13 @@ package com.rakutenmobile.messageapi.usermessage.port.service;
 import com.rakutenmobile.messageapi.usermessage.adapter.out.persistence.MessageEntity;
 import com.rakutenmobile.messageapi.usermessage.adapter.out.persistence.MessageRepository;
 import com.rakutenmobile.messageapi.usermessage.domain.exception.MessageNotFoundException;
+import com.rakutenmobile.messageapi.usermessage.domain.exception.MessageNotOwnedException;
 import com.rakutenmobile.messageapi.usermessage.port.in.MessageUseCase;
 import com.rakutenmobile.messageapi.usermessage.domain.UserMessage;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
@@ -42,8 +45,12 @@ public class MessageService implements MessageUseCase {
     }
 
     @Override
-    public void deleteMessageById(UUID id) {
-        return;
+    public Mono<Void> deleteMessageById(UUID id) {
+       return ReactiveSecurityContextHolder.getContext()
+                .map(context -> context.getAuthentication().getPrincipal()).cast(UserDetails.class)
+               .flatMap(v -> messageRepository.findMessageEntityByIdAndUserId(id, v.getUsername()))
+               .switchIfEmpty(Mono.defer(() -> Mono.error(new MessageNotOwnedException("Forbid to delete other user's message"))))
+               .flatMap(d -> messageRepository.deleteById(id)).then();
     }
 
     @Override
