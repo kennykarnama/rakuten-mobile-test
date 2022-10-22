@@ -1,5 +1,10 @@
 package com.rakutenmobile.messageapi.usermessage.adapter.in.restful;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.rakutenmobile.messageapi.usermessage.adapter.out.kafka.UserMessageDto;
 import com.rakutenmobile.messageapi.usermessage.domain.UserMessage;
 import com.rakutenmobile.messageapi.usermessage.port.in.MessageUseCase;
 import com.rakutenmobile.messageapi.usermessage.port.out.PublishMessageUseCase;
@@ -10,9 +15,11 @@ import com.rakutenmobile.openapi.spring.reactive.api.MessageApi;
 import com.rakutenmobile.openapi.spring.reactive.api.MessagesApi;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
@@ -24,9 +31,12 @@ public class MessageController implements MessagesApi, MessageApi {
     private final PublishMessageUseCase publisher;
     private final MessageUseCase messageUseCase;
 
-    public MessageController(PublishMessageUseCase publisher, MessageUseCase messageUseCase) {
+    private final ReactiveKafkaProducerTemplate<String, String> kafka;
+
+    public MessageController(PublishMessageUseCase publisher, MessageUseCase messageUseCase, ReactiveKafkaProducerTemplate<String, String> kafka) {
         this.publisher = publisher;
         this.messageUseCase = messageUseCase;
+        this.kafka = kafka;
     }
 
     @Override
@@ -35,12 +45,36 @@ public class MessageController implements MessagesApi, MessageApi {
     }
 
     @Override
-    public Mono<ResponseEntity<Void>> messagesPost(Flux<SubmitMessageRequest> submitMessageRequest, ServerWebExchange exchange) {
-        Flux<UserMessage> sources = submitMessageRequest.map(req -> UserMessage.builder()
-                .content(req.getContent()).topic(req.getTopic()).createdAt(OffsetDateTime.now()).build());
-        return publisher.Publish(sources).doOnError(e -> System.out.println(e.toString()))
-                .doOnNext(r -> System.out.println(r.toString()))
-                .then(Mono.empty());
+    public Mono<Void> messagesPost(Flux<SubmitMessageRequest> submitMessageRequest, ServerWebExchange exchange) {
+        Hooks.onOperatorDebug();
+        return exchange.getPrincipal().map(v -> v.getName()).
+                flatMapMany(usr -> submitMessageRequest.flatMap(req -> {
+                    UserMessage userMessage = UserMessage.builder()
+                            .content(req.getContent())
+                            .topic(req.getTopic())
+                            .createdAt(OffsetDateTime.now())
+                            .userId(usr)
+                            .build();
+                    return Flux.just(userMessage);
+                })).map(message -> {
+                    UserMessageDto dto = new UserMessageDto(message.getId(),
+                            message.getContent(), message.getTopic(), message.getCreatedAt(), message.getUserId());
+                    System.out.println(message);
+                    ObjectMapper mapper = JsonMapper.builder()
+                            .addModule(new JavaTimeModule())
+                            .build();
+                    String json = "";
+                    try {
+                        json = mapper.writeValueAsString(dto);
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
+                    return kafka.send("send-message", json).subscribe();
+                }).map(aduh -> {
+                    kafka.flush();
+                    System.out.println(aduh.toString());
+                    return aduh;
+                }).then().then();
     }
 
     @Override
