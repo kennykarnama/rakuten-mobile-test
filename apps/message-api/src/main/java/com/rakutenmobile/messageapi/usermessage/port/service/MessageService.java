@@ -6,14 +6,13 @@ import com.rakutenmobile.messageapi.usermessage.domain.exception.MessageNotFound
 import com.rakutenmobile.messageapi.usermessage.domain.exception.MessageNotOwnedException;
 import com.rakutenmobile.messageapi.usermessage.port.in.MessageUseCase;
 import com.rakutenmobile.messageapi.usermessage.domain.UserMessage;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public class MessageService implements MessageUseCase {
@@ -56,12 +55,25 @@ public class MessageService implements MessageUseCase {
     }
 
     @Override
-    public Mono<Page<UserMessage>> findAll(PageRequest pageRequest) {
-        return messageRepository
-                .findAllBy(
-                        pageRequest.withSort(Sort.by("createdAt").descending())
-                )
-                .map(messageEntity -> UserMessage.builder()
+    public Mono<Page<UserMessage>> findAll(PageRequest pageRequest, Optional<String> userId, Optional<String> topic) {
+        Flux<MessageEntity> data;
+        Pageable paging = pageRequest.withSort(Sort.by("createdAt").descending());
+        if (userId.isPresent() && topic.isPresent()) {
+            data = messageRepository.findAllByUserIdAndTopicContainingIgnoreCase(
+                    paging,
+                    userId.get(),
+                    topic.get()
+            );
+        }else if (userId.isPresent()) {
+            data = messageRepository.findAllByUserId(paging, userId.get());
+        }else if (topic.isPresent()) {
+            data = messageRepository.findAllByTopicContainsIgnoreCase(paging, topic.get());
+        }else {
+            data = messageRepository.findAllBy(
+                    paging
+            );
+        }
+        return data.map(messageEntity -> UserMessage.builder()
                         .id(messageEntity.getId())
                         .userId(messageEntity.getUserId())
                         .topic(messageEntity.getTopic())

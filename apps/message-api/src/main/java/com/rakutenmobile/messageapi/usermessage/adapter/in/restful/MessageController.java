@@ -21,6 +21,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -40,7 +41,8 @@ public class MessageController implements MessagesApi, MessageApi {
 
     @Override
     public Mono<ResponseEntity<MessagesGet200Response>> messagesGet(Integer page, Integer pageSize, String userId, String topic, ServerWebExchange exchange) {
-        return messageUseCase.findAll(PageRequest.of(page, pageSize))
+        return messageUseCase.findAll(PageRequest.of(page - 1, pageSize), Optional.ofNullable(userId),
+                        Optional.ofNullable(topic))
                 .map(result -> {
                     MessagesGet200Response dto = new MessagesGet200Response();
 
