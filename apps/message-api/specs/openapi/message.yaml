@@ -101,7 +101,7 @@ paths:
             type: string
       responses:
         '200':
-          $ref: '#/components/responses/ListMessages'
+          $ref: '#/components/responses/ListMessagesResponse'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '500':
@@ -143,7 +143,7 @@ components:
         WWW_Authenticate:
           schema:
             type: string
-    ListMessages:
+    ListMessagesResponse:
       description: List messages with pagination
       content:
         application/json:
@@ -172,6 +172,7 @@ components:
           type: integer
         totalItems:
           type: integer
+          format: int64
     SubmitMessageRequest:
       type: object
       required:

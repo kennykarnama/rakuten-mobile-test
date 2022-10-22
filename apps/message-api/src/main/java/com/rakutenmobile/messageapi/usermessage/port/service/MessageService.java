@@ -7,7 +7,9 @@ import com.rakutenmobile.messageapi.usermessage.domain.exception.MessageNotOwned
 import com.rakutenmobile.messageapi.usermessage.port.in.MessageUseCase;
 import com.rakutenmobile.messageapi.usermessage.domain.UserMessage;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import reactor.core.publisher.Mono;
@@ -54,7 +56,19 @@ public class MessageService implements MessageUseCase {
     }
 
     @Override
-    public Mono<Page<UserMessage>> findAll(Pageable pageable) {
-        return null;
+    public Mono<Page<UserMessage>> findAll(PageRequest pageRequest) {
+        return messageRepository
+                .findAllBy(
+                        pageRequest.withSort(Sort.by("createdAt").descending())
+                )
+                .map(messageEntity -> UserMessage.builder()
+                        .id(messageEntity.getId())
+                        .userId(messageEntity.getUserId())
+                        .topic(messageEntity.getTopic())
+                        .content(messageEntity.getContent())
+                        .createdAt(messageEntity.getCreatedAt())
+                        .build())
+                .collectList().zipWith(messageRepository.count())
+                .map(item -> new PageImpl<>(item.getT1(), pageRequest, item.getT2()));
     }
 }

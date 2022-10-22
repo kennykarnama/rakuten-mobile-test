@@ -1,11 +1,13 @@
 package com.rakutenmobile.messageapi.usermessage.adapter.out.persistence;
 
-import lombok.Builder;
-import lombok.Value;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
-@Value
+@Data
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor(staticName = "create")
 @Builder
 @Table(name = "messages")
 public class MessageEntity {
