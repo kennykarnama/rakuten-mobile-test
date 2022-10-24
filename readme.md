@@ -85,11 +85,11 @@ Each of application that employs user authentication needs to validate the accou
 
 High level flow will be like this:
 
-![clipboard.png](inkdrop://file:tt9NhQ18e)
+![Alt text](misc/figures/auth.png "auth-flow.png")
 
 - User requests to [x]-api where x is the target service
 - In [x]-api, the request will be validated to user-api
-- user-api will returns
+- user-api will return
     - 401, invalid credentials
     - 400, invalid params
     - 500 otherwise
@@ -127,7 +127,7 @@ Operations supported:
 
 - Submit messages
 
-![clipboard.png](inkdrop://file:xiJLwPzKw)
+![Alt text](misc/figures/submit-messages-flow.png "submit-messages-flow.png")
 
 - Submitting messages
 
@@ -150,3 +150,5 @@ I don't have so much time when doing this. So there is still lots of possibiliti
 
 - [ ] Integration test
 - [ ] replay for deadletter
+
+**Please open issue if you found something wrong**
